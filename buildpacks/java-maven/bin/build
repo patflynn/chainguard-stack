@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "---> Java buildpack"
+echo "---> Chainguard"
+
+# 1. GET ARGS
+layers_dir="$1"
+env_dir="$2/env"
+plan_path="$3"
+
+# 2. LOAD USER-PROVIDED BUILD-TIME ENVIRONMENT VARIABLES
+if compgen -G "${env_dir}/*" > /dev/null; then
+  for var in ${env_dir}/*; do
+    declare "$(basename ${var})=$(<${var})"
+  done
+fi
+
+# 3. INSTALL JAVA
+jdk_url="https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.4.1%2B1/OpenJDK17U-jdk_x64_linux_hotspot_17.0.4.1_1.tar.gz"
+jdk_version="17.0.4.1+1"
+
+echo "Wolfi breaks the rule"
+# Wolfi breaks the rule
+# if [[ -r /etc/alpine-release ]]; then
+#  jdk_url="https://cdn.azul.com/zulu/bin/zulu8.40.0.25-ca-jdk8.0.222-linux_musl_x64.tar.gz"
+#  jdk_version="1.8.0_222"
+# fi
+
+maven_url="https://apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz"
+maven_version="3.5.4"
+
+echo "---> Installing JDK"
+
+# If it doesn't exist locally, create a JDK cache layer
+# This makes JDK available to subsequent buildpacks as well
+jdk_layer_dir=${layers_dir}/jdk
+if [[ -f ${jdk_layer_dir}.toml ]]; then
+  cached_jdk_url=$(cat "${jdk_layer_dir}.toml" | yj -t | jq -r .metadata.url 2>/dev/null || echo 'JDK TOML parsing failed')
+fi
+
+if [[ ${jdk_url} != ${cached_jdk_url} ]] ; then
+  rm -rf "$layers_dir"/jdk
+  mkdir -p "$layers_dir"/jdk/env
+  wget -q -O - "$jdk_url" | tar pxz -C "${jdk_layer_dir}" --strip-components=1
+
+  cat > "${jdk_layer_dir}.toml" << EOF
+launch = true
+pbuild = true
+cache = true
+
+[metadata]
+version = "${jdk_version}"
+url = "${jdk_url}"
+EOF
+
+  echo "$layers_dir"/jdk > "$layers_dir"/jdk/env/JAVA_HOME
+  if [[ -z ${LD_LIBRARY_PATH} ]]; then
+    echo "${JAVA_HOME}/jre/lib/amd64/server" > ${jdk_layer_dir}/env/LD_LIBRARY_PATH
+  else
+    echo "${JAVA_HOME}/jre/lib/amd64/server:${LD_LIBRARY_PATH}" > ${jdk_layer_dir}/env/LD_LIBRARY_PATH
+  fi
+
+  mkdir -p ${jdk_layer_dir}/profile.d
+  cat > "${jdk_layer_dir}/profile.d/jdk.sh" << EOF
+export JAVA_HOME=${jdk_layer_dir}
+if [[ -z \$LD_LIBRARY_PATH ]]; then
+  export LD_LIBRARY_PATH="\$JAVA_HOME/jre/lib/amd64/server"
+else
+  export LD_LIBRARY_PATH="\$JAVA_HOME/jre/lib/amd64/server:${LD_LIBRARY_PATH}"
+fi
+EOF
+fi
+
+# Set env variables to make jdk accessible
+for var in "$layers_dir"/jdk/env/*; do
+  declare "$(basename "$var")=$(<"$var")"
+done
+export PATH=${jdk_layer_dir}/bin:$PATH
+
+# 4. MAKE MAVEN M2 CACHE LAYER
+m2_layer_dir="${layers_dir}/maven_m2"
+if [[ ! -d ${m2_layer_dir} ]]; then
+  mkdir -p ${m2_layer_dir}
+  echo "cache = true" > ${m2_layer_dir}.toml
+fi
+ln -s ${m2_layer_dir} $HOME/.m2
+
+# 5. RUN BUILD
+MAVEN_OPTS="${MAVEN_OPTS:-"-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"}"
+
+if [[ -x mvnw ]]; then
+  echo "---> Running Maven Wrapper"
+  javac --version
+  ./mvnw clean install -B -DskipTests
+else
+  maven_layer_dir=${layers_dir}/maven
+  if [[ -f ${layers_dir}/maven.toml ]]; then
+    cached_maven_url=$(cat "${maven_layer_dir}.toml" | yj -t | jq -r .metadata.url 2>/dev/null || echo 'Maven TOML parsing failed')
+  fi
+  if [[ ${maven_url} != ${cached_maven_url} ]] ; then
+    echo "---> Installing Maven"
+    rm -rf "${maven_layer_dir}"
+    mkdir -p "${maven_layer_dir}"
+    wget -q -O - "${maven_url}" | tar pxz -C "${maven_layer_dir}" --strip-components=1
+    cat > "${maven_layer_dir}.toml" << EOF
+launch = true
+build = true
+cache = true
+
+[metadata]
+version = "${maven_version}"
+url = "${maven_url}"
+EOF
+  fi
+  export PATH="${PATH}:${layers_dir}/maven/bin"
+
+  echo "---> Running Maven"
+  java --version
+  mvn clean install -B -DskipTests
+fi
+
+# 6. SET DEFAULT START COMMAND
+target_dir="target"
+for jar_file in $(find "$target_dir" -maxdepth 1 -name "*.jar" -type f); do
+  cat >> "${layers_dir}/launch.toml" <<EOL
+[[processes]]
+type = "web"
+command = "java -jar ${jar_file}"
+EOL
+  break;
+done

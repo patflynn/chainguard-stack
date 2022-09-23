@@ -1,0 +1,24 @@
+# Buildpack API version
+api = "0.2"
+
+# Buildpack ID and metadata
+[buildpack]
+id = "samples/java-maven"
+version = "0.0.1"
+name = "Sample Java Maven Buildpack"
+homepage = "https://github.com/buildpacks/samples/tree/main/buildpacks/java-maven"
+
+
+# Stacks that the buildpack will work with
+[[stacks]]
+id = "io.buildpacks.samples.stacks.bionic"
+
+[[stacks]]
+id = "io.buildpacks.samples.stacks.alpine"
+
+[[stacks]]
+id = "wolfi-base-stack"
+
+[[stacks]]
+id = "io.buildpacks.stacks.bionic"
+mixins = ["build:set=shell-utils"]
