@@ -10,7 +10,7 @@ docker build --platform=amd64 --build-arg "base_image=chainguard/stack-base:wolf
 
 pack builder create chainguard-builder:wolfi --config ./builder.toml
 
-cd sample/recaptcha-demo
+cd ../sample/recaptcha-demo
 pack build recaptcha-demo --builder chainguard-builder:wolfi
 
 docker run --rm -p 8080:8080 recaptcha-demo
