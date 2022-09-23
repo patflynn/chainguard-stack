@@ -1,3 +1,5 @@
+The java buildpack is hacked together from the CNBP samples repo and tutorials.
+
 # chainguard-stack
 
 ``` sh
