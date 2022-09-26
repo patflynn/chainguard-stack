@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Guest Book</title>
+    <script
+            src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="view/app.js"></script>
+    <script type="text/javascript">
+        var captchaWidget;
+        var onloadCallback = function () {
+            captchaWidget = grecaptcha.render('captcha', {
+                'sitekey': '6Lc7__MUAAAAADOSlTjj9vcRzGuzMxq1Nq5Oe9PP'
+            });
+        };
+    </script>
+    <style>
+        a {
+            cursor: pointer;
+            background-color: lightblue;
+        }
+    </style>
+</head>
+<body>
+<div ng-controller="GreetingsCtrl">
+    <table>
+        <tr>
+            <td width="100">Username:</td>
+            <td><input id="name" ng-model="greeting.username" type="text"/></td>
+        </tr>
+        <tr>
+            <td width="100">Messsage:</td>
+            <td><input id="email" ng-model="greeting.message" type="text"/></td>
+        </tr>
+    </table>
+    <br/> <br/>
+    <a ng-click="addGreeting(greeting.username, greeting.message)">Add Greeting</a>
+    <div id="captcha"></div>
+    <div class="g-recaptcha" data-sitekey="6Lc7__MUAAAAADOSlTjj9vcRzGuzMxq1Nq5Oe9PP"></div>
+    <script async
+            defer src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit">
+    </script>
+    <br/> <br/>
+    <p style="color: green">{{message}}</p>
+    <p style="color: red">{{errorMessage}}</p>
+
+    <br/>
+    <br/>
+    <a ng-click="getAllGreetings()">Get all Greetings</a><br/>
+    <br/> <br/>
+    <div ng-repeat="greeting in greetings">
+        {{greeting.username}} {{greeting.message}}
+    </div>
+</div>
+</body>
+</html>
