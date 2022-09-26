@@ -2,7 +2,7 @@ The java buildpack is hacked together from the CNBP samples repo and tutorials.
 
 # chainguard-stack
 
-First you'll need to install (pack)[https://buildpacks.io/docs/tools/pack/].
+First you'll need to install [pack](https://buildpacks.io/docs/tools/pack/).
 
 ``` sh
 cd stack/wolfi
