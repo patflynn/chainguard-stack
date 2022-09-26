@@ -1,13 +1,13 @@
 # Buildpacks to include in builder
 [[buildpacks]]
-id = "samples/java-maven"
+id = "wolfi-demo/java-maven"
 version = "0.0.1"
 uri = "../buildpacks/java-maven"
 
 # Order used for detection
 [[order]]
 [[order.group]]
-id = "samples/java-maven"
+id = "wolfi-demo/java-maven"
 version = "0.0.1"
 
 # Stack that will be used by the builder
