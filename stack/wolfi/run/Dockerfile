@@ -1,9 +1,5 @@
-ARG base_image
-FROM ${base_image}
+FROM cgr.dev/chainguard/wolfi-base:latest
 
-# Set required CNB information
-ARG stack_id
-LABEL io.buildpacks.stack.id="${stack_id}"
+ARG packages
 
-# Set user and group (as declared in base image)
-USER ${CNB_USER_ID}:${CNB_GROUP_ID}
+RUN apk add --update --no-cache $packages

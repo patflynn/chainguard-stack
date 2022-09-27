@@ -2,21 +2,19 @@ The java buildpack is hacked together from the CNBP samples repo and tutorials.
 
 # chainguard-stack
 
-First you'll need to install [pack](https://buildpacks.io/docs/tools/pack/).
+First you'll need to install [pack](https://buildpacks.io/docs/tools/pack/) and [jam](https://github.com/paketo-buildpacks/jam).
 
 ``` sh
 cd stack/wolfi
-docker build --platform=amd64 -t "chainguard/stack-base:wolfi" "./base"
- 
-docker build --platform=amd64 --build-arg "base_image=chainguard/stack-base:wolfi" --build-arg "stack_id=wolfi-base-stack" -t "chainguard/stack-build:wolfi" "./build"
- 
-docker build --platform=amd64 --build-arg "base_image=chainguard/stack-base:wolfi" --build-arg "stack_id=wolfi-base-stack" -t "chainguard/stack-run:wolfi" "./run"
+jam create-stack --config stack.toml --build-output build.oci --run-output run.oci
+skopeo copy oci-archive:run.oci docker://<registry>/wolfi-stack-base-run
+skopeo copy oci-archive:build.oci docker://<registry>/wolfi-stack-base-build
 
 cd ../../builder
-pack builder create chainguard-builder:wolfi --config ./builder.toml
+pack builder create <registry>/wolfi-base-builder --config ./builder.toml
 
 cd ../sample/recaptcha-demo
-pack build recaptcha-demo --builder chainguard-builder:wolfi
+pack build recaptcha-demo --builder <registry>/wolfi-base-builder
 
 docker run --rm -p 8080:8080 recaptcha-demo
 ```
