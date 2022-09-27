@@ -1,17 +1,20 @@
 # Buildpacks to include in builder
 [[buildpacks]]
-id = "wolfi-demo/java-maven"
-version = "0.0.1"
-uri = "../buildpacks/java-maven"
+  uri = "docker://gcr.io/paketo-buildpacks/java:7.4.1"
+  version = "7.4.1"
 
 # Order used for detection
 [[order]]
-[[order.group]]
-id = "wolfi-demo/java-maven"
-version = "0.0.1"
+
+  [[order.group]]
+    id = "paketo-buildpacks/java"
+    version = "7.4.1"
+
+[lifecycle]
+  version = "0.14.2"
 
 # Stack that will be used by the builder
 [stack]
-id = "wolfi-base-stack"
-run-image = "chainguard/stack-run:wolfi"
-build-image = "chainguard/stack-build:wolfi"
+id = "wolfi-stack-base"
+run-image = "<registry>/wolfi-stack-base-run"
+build-image = "<registry>/wolfi-stack-base-build"

@@ -1,0 +1,35 @@
+id = "wolfi-base-stack"
+homepage = "https://github.com/patflynn/chainguard-stack"
+maintainer = "Chainguard"
+
+platforms = ["linux/amd64"]
+
+[build]
+  description = "WolfiOS based build image"
+  dockerfile = "./build/Dockerfile"
+  gid = 1000
+  shell = "/bin/bash"
+  uid = 1001
+
+  [build.args]
+
+    packages = """\
+    bash \
+    ca-certificates \
+    git \
+    jq \
+    wget
+    """
+
+[run]
+  description = "WolfiOS based run image"
+  dockerfile = "./run/Dockerfile"
+  gid = 1000
+  shell = "/sbin/nologin"
+  uid = 1002
+
+  [run.args]
+    packages = """\
+    bash \
+    ca-certificates
+    """
