@@ -1,4 +1,4 @@
-id = "wolfi-base-stack"
+id = "wolfi-stack-base"
 homepage = "https://github.com/patflynn/chainguard-stack"
 maintainer = "Chainguard"
 

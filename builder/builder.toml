@@ -16,5 +16,5 @@
 # Stack that will be used by the builder
 [stack]
 id = "wolfi-stack-base"
-run-image = "<registry>/wolfi-stack-base-run"
-build-image = "<registry>/wolfi-stack-base-build"
+run-image = "gcr.io/gunk-dev/wolfi-stack-base-run"
+build-image = "gcr.io/gunk-dev/wolfi-stack-base-build"

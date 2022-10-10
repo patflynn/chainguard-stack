@@ -14,4 +14,4 @@ homepage = "https://github.com/patflynn/chainguard-stack"
 id = "io.buildpacks.samples.stacks.alpine"
 
 [[stacks]]
-id = "wolfi-base-stack"
+id = "wolfi-stack-base"
